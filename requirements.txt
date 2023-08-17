@@ -13,3 +13,4 @@ sqlalchemy
 sqlalchemy-bigquery
 google-cloud-bigquery-storage
 sqlalchemy-bigquery[geography]
+geoalchemy2
