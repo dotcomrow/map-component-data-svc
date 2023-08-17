@@ -5,16 +5,23 @@ from sqlalchemy import String
 from sqlalchemy_bigquery import DATETIME
 import config
 from sqlalchemy.orm import registry
+from sqlalchemy.orm import MappedAsDataclass
+from sqlalchemy.orm import DeclarativeBase
+
+
+class Base(MappedAsDataclass, DeclarativeBase):
+    """subclasses will be converted to dataclasses"""
 
 mapper_registry = registry()
 
-class POIData():
+class POIData(Base, repr=False):
     __table__ = config.TABLE_NAME
-    pass
+    
+    
 
-class POIDeleteData():
+class POIDeleteData(Base, repr=False):
     __table__ = config.TABLE_NAME + "_deletes"
-    pass
+    
     
 mapper_registry.map_imperatively(POIData, Table(
        config.TABLE_NAME,
