@@ -2,7 +2,6 @@ from sqlalchemy.schema import Table
 from sqlalchemy import Column, Integer, String
 from geoalchemy2 import Geography
 from sqlalchemy import String
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_bigquery import DATETIME
 import config
 from sqlalchemy.orm import registry

@@ -8,6 +8,7 @@ import pandas as pd
 from create_task import create_task
 import sqlalchemy as db
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 import orm
 
 app = Flask(__name__)
@@ -25,17 +26,16 @@ def getItems(account_id, item_id):
         return Response(response="Account ID required", status=400)
     
     engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
-    
     my_session = Session(engine) 
     result = None
     if item_id is None:
         result = my_session.execute(
-            orm.POIData.__table__.select().join(orm.POIDeleteData, 
+            select(orm.POIData).join(orm.POIDeleteData, 
                     orm.POIData.__table__.c.account_id == orm.POIDeleteData.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDeleteData.__table__.c.id ,isouter=True, full=False)
             .where(orm.POIData.__table__.c.account_id == account_id)).all()
     else:
         result = my_session.execute(
-            orm.POIData.__table__.select().join(orm.POIDeleteData, 
+            select(orm.POIData).join(orm.POIDeleteData, 
                     orm.POIData.__table__.c.account_id == orm.POIDeleteData.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDeleteData.__table__.c.id ,isouter=True, full=False)
             .where(orm.POIData.__table__.c.account_id == account_id and orm.POIData.__table__.c.id == item_id)).all()
     my_session.close()
