@@ -56,13 +56,12 @@ def addItem(account_id):
     
     index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()'), dict(account_id=account_id)).scalar()
     
-    query = table.insert()
+    
     request_data = request.get_json()
     request_data['ID'] = index
     request_data['ACCOUNT_ID'] = account_id
     request_data['LAST_UPDATE_DATETIME'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    query.values(request_data)
-
+    query = table.insert().values(request_data)
     my_session = Session(engine)
     my_session.execute(query)
     my_session.close()
