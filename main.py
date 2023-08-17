@@ -19,7 +19,7 @@ app.config.from_object('config')
 app.secret_key = app.config['SECRET_KEY']
 delete_delay=20
 table_string = app.config['PROJECT_ID'] + "." + app.config['DATASET_NAME'] + "." + app.config['TABLE_NAME']
-delete_table_string = app.config['PROJECT_ID'] + "." + app.config['DATASET_NAME'] + "." + app.config['TABLE_NAME'] + "_delete"
+delete_table_string = app.config['PROJECT_ID'] + "." + app.config['DATASET_NAME'] + "." + app.config['TABLE_NAME'] + "_deletes"
 table_id = Table.from_string(table_string)
 delete_table_id = Table.from_string(delete_table_string)
 
@@ -30,7 +30,7 @@ def addItems():
     
     metadata = db.MetaData()
     table = db.Table(app.config['TABLE_NAME'], metadata, autoload_with=engine)
-    delete_table = db.Table(app.config['TABLE_NAME'] + "_delete", metadata, autoload_with=engine)
+    delete_table = db.Table(app.config['TABLE_NAME'] + "_deletes", metadata, autoload_with=engine)
 
     result = connection.execute(table.select().join(delete_table, table.c['account_id'] == delete_table.c['account_id'] and table.c['id'] == delete_table.c['id'] ,isouter=False, full=False).where(table.c['account_id'] == request.get_json()['account_id'])).fetchall()
     
