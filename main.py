@@ -32,7 +32,7 @@ def addItems():
     table = db.Table(app.config['TABLE_NAME'], metadata, autoload_with=engine)
     delete_table = db.Table(app.config['TABLE_NAME'] + "_deletes", metadata, autoload_with=engine)
 
-    result = connection.execute(table.select().join(delete_table, table.c['account_id'] == delete_table.c['account_id'] and table.c['id'] == delete_table.c['id'] ,isouter=False, full=False).where(table.c['account_id'] == request.get_json()['account_id'])).fetchall()
+    result = connection.execute(table.select().join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['id'] == delete_table.c['id'] ,isouter=False, full=False).where(table.c['account_id'] == request.get_json()['account_id'])).fetchall()
     
     # jsonObj = request.get_json()
     # jsonObj['item_id'] = row_id
