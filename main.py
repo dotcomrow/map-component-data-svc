@@ -4,6 +4,7 @@ import logging
 import json
 import base64
 import datetime
+import pandas as pd
 from create_task import create_task
 import sqlalchemy as db
 from sqlalchemy.orm import Session
@@ -66,7 +67,7 @@ def addItem(account_id):
     result = my_session.execute(query)
     my_session.close()
     
-    return Response(response=str(result.to_dict(orient='records')[0]).encode('utf-8'), status=201)
+    return Response(response=str(pd.dataframe(result).to_dict(orient='records')[0]).encode('utf-8'), status=201)
 
 
 # @app.put("/" + app.config['TABLE_NAME'])
