@@ -1,31 +1,24 @@
 from flask import Flask, request, Response
-from google.cloud import bigquery
-from google.cloud.bigquery import Table
 import google.cloud.logging
 import logging
 import json
 import base64
 import datetime
-import pandas as pd
 from create_task import create_task
 import sqlalchemy as db
+from sqlalchemy.orm import Session
 
 app = Flask(__name__)
 logClient = google.cloud.logging.Client()
-client = bigquery.Client()
 logClient.setup_logging()
 
 app.config.from_object('config')
 app.secret_key = app.config['SECRET_KEY']
 delete_delay=20
-table_string = app.config['PROJECT_ID'] + "." + app.config['DATASET_NAME'] + "." + app.config['TABLE_NAME']
-delete_table_string = app.config['PROJECT_ID'] + "." + app.config['DATASET_NAME'] + "." + app.config['TABLE_NAME'] + "_deletes"
-table_id = Table.from_string(table_string)
-delete_table_id = Table.from_string(delete_table_string)
 
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>", defaults={'item_id': None})
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
-def addItems(account_id, item_id):
+def getItems(account_id, item_id):
     if account_id is None:
         return Response(response="Account ID required", status=400)
     
@@ -47,27 +40,32 @@ def addItems(account_id, item_id):
             table.select().join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=False, full=False)
             .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'] and table.c['ID'] == item_id)).fetchall()
         logging.info(result)
-         
-    # jsonObj = request.get_json()
-    # jsonObj['item_id'] = row_id
-    # jsonObj['account_id'] = user['sub']
-    # jsonObj['create_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # rows_to_insert = [jsonObj]
-    # errors = client.insert_rows_json(table_id, rows_to_insert)  # Make an API request.
-    
+    logging.info(connection.callproc('get_next_id', [account_id])) 
     return result
     
-    # if errors == []:
-    #     return Response(response=json.dumps(jsonObj), status=201)
-    # else:
-    #     return Response(response="Encountered errors while inserting rows: {}".format(errors), status=500)
+@app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
+def addItem(account_id):
+    if account_id is None:
+        return Response(response="Account ID required", status=400)
     
-# @app.get("/" + app.config['TABLE_NAME'])
-# def getItems():
-#     return client.query("""SELECT t1.* FROM `{table_string}` t1 
-#                         LEFT JOIN `{delete_table_string}` t2 ON t2.item_id = t1.item_id 
-#                         WHERE t2.item_id IS NULL AND t1.account_id = '{account_id}'""".format(table_string=table_string, delete_table_string=delete_table_string, account_id=user['sub'])).to_dataframe().to_json(orient='records')
+    engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
+    connection = engine.connect()
+    
+    metadata = db.MetaData()
+    table = db.Table(app.config['TABLE_NAME'], metadata, autoload_with=engine)
+    
+    index = connection.callproc('get_next_id', [account_id])
+    
+    query = table.insert()
+    request_data = request.get_json()
+    request_data['ID'] = index[0]
+    query.values(request_data)
+
+    my_session = Session(engine)
+    my_session.execute(query)
+    my_session.close()
+
 
 # @app.put("/" + app.config['TABLE_NAME'])
 # def updateItem():
