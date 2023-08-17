@@ -1,4 +1,4 @@
-from flask import Flask, request, Response
+from flask import Flask, jsonify, request, Response
 import google.cloud.logging
 import logging
 import json
@@ -41,6 +41,7 @@ def getItems(account_id, item_id):
     my_session.close()
     
     logging.info(result)
+    logging.info(jsonify(result))
     return Response(response="working...", status=200)
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
