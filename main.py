@@ -26,8 +26,13 @@ delete_table_id = Table.from_string(delete_table_string)
 @app.get("/" + app.config['TABLE_NAME'])
 def addItems():
     db = create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
-    db.connect()
-    result = db.query("SELECT * FROM `" + table_string + "` LIMIT 0").to_dataframe().to_sql(app.config['TABLE_NAME'], db, if_exists='fail', index=False)
+    connection = db.connect()
+    
+    metadata = db.MetaData()
+    get_records = db.Table(table_string, metadata, autoload=True, autoload_with=db)
+
+    result = connection.execute(get_records.select()).fetchall()
+    
     # jsonObj = request.get_json()
     # jsonObj['item_id'] = row_id
     # jsonObj['account_id'] = user['sub']
