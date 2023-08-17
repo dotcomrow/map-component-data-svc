@@ -2,12 +2,11 @@ from sqlalchemy.schema import Table
 from sqlalchemy import Column, Integer, String
 from geoalchemy2 import Geometry
 from sqlalchemy import String
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_bigquery import DATETIME
 import config
 
-class Base(DeclarativeBase):
-    pass
+Base = declarative_base()
 
 class POIData(Base):
     __table__ = Table(
