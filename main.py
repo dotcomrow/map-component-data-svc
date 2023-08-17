@@ -42,7 +42,7 @@ def getItems(account_id, item_id):
             .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'] and table.c['ID'] == item_id)).fetchall()
         logging.info(result)
     
-    return result
+    return Response(response=json.dumps(result, default=str), status=200)
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
 def addItem(account_id):
