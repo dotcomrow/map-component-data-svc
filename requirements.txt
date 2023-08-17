@@ -1,0 +1,12 @@
+flask
+gunicorn
+pybase64
+google-cloud-BigQuery
+pandas
+db_dtypes
+google-cloud-logging
+google-cloud-pubsub
+swagger-gen
+google-cloud-tasks
+protobuf
+sqlalchemy
