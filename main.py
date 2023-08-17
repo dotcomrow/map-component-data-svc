@@ -42,7 +42,7 @@ def getItems(account_id, item_id):
             .where(orm.POIData.__table__.c.account_id == request.view_args['account_id'] and orm.POIData.__table__.c.id == item_id)).mappings().all()
         logging.info(result)
     my_session.close() 
-    for r in result:
+    for r in result.scalars():
         logging.info(json.dumps(r, cls=orm.AlchemyEncoder))
     return Response(response="working...", status=200)
     
