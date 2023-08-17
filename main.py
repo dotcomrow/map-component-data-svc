@@ -23,6 +23,7 @@ delete_table_string = app.config['PROJECT_ID'] + "." + app.config['DATASET_NAME'
 table_id = Table.from_string(table_string)
 delete_table_id = Table.from_string(delete_table_string)
 
+@app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>", defaults={'item_id': None})
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
 def addItems(account_id, item_id):
     if account_id is None:
