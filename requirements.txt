@@ -11,3 +11,5 @@ google-cloud-tasks
 protobuf
 sqlalchemy
 sqlalchemy-bigquery
+google-cloud-bigquery-storage
+sqlalchemy-bigquery[geography]
