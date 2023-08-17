@@ -29,7 +29,7 @@ def addItems():
     connection = engine.connect()
     
     metadata = db.MetaData()
-    get_records = db.Table(table_string, metadata, autoload_with=engine)
+    get_records = db.Table(app.config['TABLE_NAME'], metadata, autoload_with=engine)
 
     result = connection.execute(get_records.select()).fetchall()
     

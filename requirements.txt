@@ -10,4 +10,4 @@ swagger-gen
 google-cloud-tasks
 protobuf
 sqlalchemy
-pybigquery
+sqlalchemy-bigquery
