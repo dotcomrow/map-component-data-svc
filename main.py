@@ -41,7 +41,7 @@ def getItems(account_id, item_id):
             .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'] and table.c['ID'] == item_id)).fetchall()
         logging.info(result)
     
-    logging.info(connection.execute(db.text('call get_next_id'), dict(account_id=account_id))) 
+    logging.info(connection.execute(db.text('call get_next_id()'), dict(account_id=account_id))) 
     return result
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
