@@ -42,7 +42,7 @@ def getItems(account_id, item_id):
         logging.info(result)
     
     for r in result:
-        logging.info(r)
+        logging.info(json.dumps(r, cls=orm.AlchemyEncoder))
     return Response(response="working...", status=200)
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
