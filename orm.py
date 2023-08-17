@@ -7,6 +7,9 @@ from sqlalchemy_bigquery import DATETIME
 import config
 import json
 from sqlalchemy.ext.declarative import DeclarativeMeta
+from sqlalchemy.orm import registry
+
+mapper_registry = registry()
 
 class AlchemyEncoder(json.JSONEncoder):
 
@@ -30,7 +33,12 @@ class AlchemyEncoder(json.JSONEncoder):
 Base = declarative_base()
 
 class POIData(Base):
-    __table__ = Table(
+    pass
+
+class POIDeleteData(Base):
+    pass
+    
+mapper_registry.map_imperatively(POIData, Table(
        config.TABLE_NAME,
         Base.metadata,
         Column("id", Integer, primary_key=True),
@@ -38,14 +46,13 @@ class POIData(Base):
         Column("data", String),
         Column("account_id", String),
         Column("last_update_datetime", DATETIME(timezone=True))
-    )
+))
 
-class POIDeleteData(Base):
-    __table__ = Table(
+mapper_registry.map_imperatively(POIDeleteData, Table(
         config.TABLE_NAME + "_deletes",
         Base.metadata,
         Column("id", Integer, primary_key=True),
         Column("account_id", String),
         Column("requested_on", DATETIME(timezone=True)),
         Column("delete_after", DATETIME(timezone=True))
-    )
+))
