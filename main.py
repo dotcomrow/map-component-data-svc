@@ -27,20 +27,21 @@ def getItems(account_id, item_id):
     engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
     connection = engine.connect()
     
+    my_session = Session(engine) 
     result = None
     if item_id is None:
-        result = connection.execute(
+        result = my_session.execute(
             orm.POIData.__table__.select().join(orm.POIDeleteData, 
                     orm.POIData.__table__.c.account_id == orm.POIDeleteData.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDeleteData.__table__.c.id ,isouter=True, full=False)
             .where(orm.POIData.__table__.c.account_id == request.view_args['account_id'])).mappings().all()
         logging.info(result)
     else:
-        result = connection.execute(
+        result = my_session.execute(
             orm.POIData.__table__.select(orm.POIData).join(orm.POIDeleteData, 
                     orm.POIData.__table__.c.account_id == orm.POIDeleteData.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDeleteData.__table__.c.id ,isouter=True, full=False)
             .where(orm.POIData.__table__.c.account_id == request.view_args['account_id'] and orm.POIData.__table__.c.id == item_id)).mappings().all()
         logging.info(result)
-    
+    my_session.close() 
     for r in result:
         logging.info(json.dumps(r, cls=orm.AlchemyEncoder))
     return Response(response="working...", status=200)
