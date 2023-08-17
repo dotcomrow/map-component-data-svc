@@ -67,7 +67,7 @@ def addItem(account_id):
     result = my_session.execute(query)
     my_session.close()
     
-    return Response(response=str(pd.DataFrame(result).to_dict(orient='records')).encode('utf-8'), status=201)
+    return Response(response=str(request_data).encode('utf-8'), status=201)
 
 
 # @app.put("/" + app.config['TABLE_NAME'])
