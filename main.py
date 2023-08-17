@@ -8,7 +8,7 @@ import base64
 import datetime
 import pandas as pd
 from create_task import create_task
-from sqlalchemy.engine import create_engine
+import sqlalchemy as db
 
 app = Flask(__name__)
 logClient = google.cloud.logging.Client()
@@ -25,11 +25,11 @@ delete_table_id = Table.from_string(delete_table_string)
 
 @app.get("/" + app.config['TABLE_NAME'])
 def addItems():
-    db = create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
-    connection = db.connect()
+    engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
+    connection = engine.connect()
     
     metadata = db.MetaData()
-    get_records = db.Table(table_string, metadata, autoload=True, autoload_with=db)
+    get_records = db.Table(table_string, metadata, autoload=True, autoload_with=engine)
 
     result = connection.execute(get_records.select()).fetchall()
     
