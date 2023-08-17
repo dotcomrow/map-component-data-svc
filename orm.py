@@ -5,11 +5,9 @@ from sqlalchemy import String
 from sqlalchemy_bigquery import DATETIME
 import config
 from sqlalchemy.orm import registry
-from sqlalchemy.orm import MappedAsDataclass
 from sqlalchemy.orm import DeclarativeBase
 
-
-class Base(MappedAsDataclass, DeclarativeBase):
+class Base(DeclarativeBase):
     """subclasses will be converted to dataclasses"""
 
 mapper_registry = registry()
