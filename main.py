@@ -32,18 +32,15 @@ def getItems(account_id, item_id):
         result = my_session.execute(
             orm.POIData.__table__.select().join(orm.POIDeleteData, 
                     orm.POIData.__table__.c.account_id == orm.POIDeleteData.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDeleteData.__table__.c.id ,isouter=True, full=False)
-            .where(orm.POIData.__table__.c.account_id == request.view_args['account_id'])).scalars().all()
-        logging.info(result)
+            .where(orm.POIData.__table__.c.account_id == request.view_args['account_id'])).all()
     else:
         result = my_session.execute(
             orm.POIData.__table__.select(orm.POIData).join(orm.POIDeleteData, 
                     orm.POIData.__table__.c.account_id == orm.POIDeleteData.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDeleteData.__table__.c.id ,isouter=True, full=False)
-            .where(orm.POIData.__table__.c.account_id == request.view_args['account_id'] and orm.POIData.__table__.c.id == item_id)).scalars().all()
-        logging.info(result)
+            .where(orm.POIData.__table__.c.account_id == request.view_args['account_id'] and orm.POIData.__table__.c.id == item_id)).all()
     my_session.close() 
-    for r in result:
-        logging.info(json.dumps(r, cls=orm.AlchemyEncoder))
-    return Response(response="working...", status=200)
+    logging.info(result)
+    return Response(response=json.dumps(result, cls=orm.AlchemyEncoder), status=200)
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
 def addItem(account_id):
