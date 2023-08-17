@@ -34,12 +34,12 @@ def getItems(account_id, item_id):
     if item_id is None:
         result = connection.execute(
             table.select().join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=True, full=False)
-            .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'])).mappings().to_json(orient='records')
+            .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'])).mappings().all()
         logging.info(result)
     else:
         result = connection.execute(
             table.select().join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=True, full=False)
-            .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'] and table.c['ID'] == item_id)).mappings().to_json(orient='records')
+            .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'] and table.c['ID'] == item_id)).mappings().all()
         logging.info(result)
     
     return Response(response=result, status=200)
