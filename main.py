@@ -23,9 +23,9 @@ delete_table_string = app.config['PROJECT_ID'] + "." + app.config['DATASET_NAME'
 table_id = Table.from_string(table_string)
 delete_table_id = Table.from_string(delete_table_string)
 
-@app.get("/" + app.config['TABLE_NAME'] + "/<account_id>/<item_id>")
-def addItems():
-    if request.view_args['account_id'] is None:
+@app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
+def addItems(account_id, item_id):
+    if account_id is None:
         return Response(response="Account ID required", status=400)
     
     engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
@@ -35,7 +35,6 @@ def addItems():
     table = db.Table(app.config['TABLE_NAME'], metadata, autoload_with=engine)
     delete_table = db.Table(app.config['TABLE_NAME'] + "_deletes", metadata, autoload_with=engine)
 
-    item_id = request.view_args['item_id']
     result = None
     if item_id is None:
         result = connection.execute(
