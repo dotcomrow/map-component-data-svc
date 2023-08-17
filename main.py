@@ -23,8 +23,11 @@ delete_table_string = app.config['PROJECT_ID'] + "." + app.config['DATASET_NAME'
 table_id = Table.from_string(table_string)
 delete_table_id = Table.from_string(delete_table_string)
 
-@app.get("/" + app.config['TABLE_NAME'])
+@app.get("/" + app.config['TABLE_NAME'] + "/<account_id>/<item_id>")
 def addItems():
+    if request.view_args['account_id'] is None:
+        return Response(response="Account ID required", status=400)
+    
     engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
     connection = engine.connect()
     
@@ -32,10 +35,16 @@ def addItems():
     table = db.Table(app.config['TABLE_NAME'], metadata, autoload_with=engine)
     delete_table = db.Table(app.config['TABLE_NAME'] + "_deletes", metadata, autoload_with=engine)
 
-    result = connection.execute(
-        table.select().join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=False, full=False)
-        .where(table.c['ACCOUNT_ID'] == request.get_json()['ACCOUNT_ID'])).fetchall()
-    
+    item_id = request.view_args['item_id']
+    if item_id is None:
+        result = connection.execute(
+            table.select().join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=False, full=False)
+            .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'])).fetchall()
+    else:
+        result = connection.execute(
+            table.select().join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=False, full=False)
+            .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'] and table.c['ID'] == item_id)).fetchall()
+         
     # jsonObj = request.get_json()
     # jsonObj['item_id'] = row_id
     # jsonObj['account_id'] = user['sub']
