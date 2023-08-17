@@ -23,7 +23,7 @@ delete_table_string = app.config['PROJECT_ID'] + "." + app.config['DATASET_NAME'
 table_id = Table.from_string(table_string)
 delete_table_id = Table.from_string(delete_table_string)
 
-@app.post("/" + app.config['TABLE_NAME'])
+@app.get("/" + app.config['TABLE_NAME'])
 def addItems():
     db = create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
     db.connect()
