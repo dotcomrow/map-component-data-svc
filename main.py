@@ -31,13 +31,13 @@ def getItems(account_id, item_id):
     if item_id is None:
         result = connection.execute(
             orm.POIData.__table__.select().join(orm.POIDeleteData, 
-                    orm.POIData.__table__.c.account_id == orm.POIDataDelete.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDataDelete.__table__.c.id ,isouter=True, full=False)
+                    orm.POIData.__table__.c.account_id == orm.POIDeleteData.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDeleteData.__table__.c.id ,isouter=True, full=False)
             .where(orm.POIData.__table__.c.account_id == request.view_args['account_id'])).mappings().all()
         logging.info(result)
     else:
         result = connection.execute(
             orm.POIData.__table__.select(orm.POIData).join(orm.POIDeleteData, 
-                    orm.POIData.__table__.c.account_id == orm.POIDataDelete.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDataDelete.__table__.c.id ,isouter=True, full=False)
+                    orm.POIData.__table__.c.account_id == orm.POIDeleteData.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDeleteData.__table__.c.id ,isouter=True, full=False)
             .where(orm.POIData.__table__.c.account_id == request.view_args['account_id'] and orm.POIData.__table__.c.id == item_id)).mappings().all()
         logging.info(result)
     
