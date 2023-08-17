@@ -41,7 +41,6 @@ def getItems(account_id, item_id):
             .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'] and table.c['ID'] == item_id)).fetchall()
         logging.info(result)
     
-    logging.info(connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()'), dict(account_id=account_id)).scalar()) 
     return result
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
@@ -59,7 +58,9 @@ def addItem(account_id):
     
     query = table.insert()
     request_data = request.get_json()
-    request_data['ID'] = index[0]
+    request_data['ID'] = index
+    request_data['ACCOUNT_ID'] = account_id
+    request_data['LAST_UPDATE_DATETIME'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     query.values(request_data)
 
     my_session = Session(engine)
