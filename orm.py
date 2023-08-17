@@ -1,10 +1,11 @@
 from sqlalchemy.schema import Table
 from sqlalchemy import Column, Integer, String
-from geoalchemy2 import Geometry
+from geoalchemy2 import Geography
 from sqlalchemy import String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_bigquery import DATETIME
 import config
+
 
 Base = declarative_base()
 
@@ -13,7 +14,7 @@ class POIData(Base):
        config.TABLE_NAME,
         Base.metadata,
         Column("id", Integer, primary_key=True),
-        Column("location", Geometry("POINT")),
+        Column("location", Geography("POINT")),
         Column("data", String),
         Column("account_id", String),
         Column("last_update_datetime", DATETIME(timezone=True))
