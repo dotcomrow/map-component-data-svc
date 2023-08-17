@@ -63,8 +63,10 @@ def addItem(account_id):
     request_data['LAST_UPDATE_DATETIME'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     query = table.insert().values(request_data)
     my_session = Session(engine)
-    my_session.execute(query)
+    result = my_session.execute(query)
     my_session.close()
+    
+    return Response(response=str(result.to_dict(orient='records')[0]).encode('utf-8'), status=201)
 
 
 # @app.put("/" + app.config['TABLE_NAME'])
