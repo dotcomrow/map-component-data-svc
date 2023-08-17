@@ -27,20 +27,18 @@ def getItems(account_id, item_id):
     engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
     connection = engine.connect()
     
-    metadata = db.MetaData()
-    table = db.Table(app.config['TABLE_NAME'], metadata, autoload_with=engine)
-    delete_table = db.Table(app.config['TABLE_NAME'] + "_deletes", metadata, autoload_with=engine)
-
     result = None
     if item_id is None:
         result = connection.execute(
-            table.select(orm.POIData).join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=True, full=False)
-            .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'])).mappings().all()
+            orm.POIData.__table__.select().join(orm.POIDeleteData, 
+                    orm.POIData.__table__.c.account_id == orm.POIDataDelete.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDataDelete.__table__.c.id ,isouter=True, full=False)
+            .where(orm.POIData.__table__.c.account_id == request.view_args['account_id'])).mappings().all()
         logging.info(result)
     else:
         result = connection.execute(
-            table.select(orm.POIData).join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=True, full=False)
-            .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'] and table.c['ID'] == item_id)).mappings().all()
+            orm.POIData.__table__.select(orm.POIData).join(orm.POIDeleteData, 
+                    orm.POIData.__table__.c.account_id == orm.POIDataDelete.__table__.c.account_id and orm.POIData.__table__.c.id == orm.POIDataDelete.__table__.c.id ,isouter=True, full=False)
+            .where(orm.POIData.__table__.c.account_id == request.view_args['account_id'] and orm.POIData.__table__.c.id == item_id)).mappings().all()
         logging.info(result)
     
     for r in result:
@@ -59,7 +57,6 @@ def addItem(account_id):
     table = db.Table(app.config['TABLE_NAME'], metadata, autoload_with=engine)
     
     index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()'), dict(account_id=account_id)).scalar()
-    
     
     request_data = request.get_json()
     request_data['ID'] = index
