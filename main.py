@@ -33,12 +33,12 @@ def getItems(account_id, item_id):
     result = None
     if item_id is None:
         result = connection.execute(
-            table.select().join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=False, full=False)
+            table.select().join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=True, full=False)
             .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'])).fetchall()
         logging.info(result)
     else:
         result = connection.execute(
-            table.select().join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=False, full=False)
+            table.select().join(delete_table, table.c['ACCOUNT_ID'] == delete_table.c['ACCOUNT_ID'] and table.c['ID'] == delete_table.c['ID'] ,isouter=True, full=False)
             .where(table.c['ACCOUNT_ID'] == request.view_args['account_id'] and table.c['ID'] == item_id)).fetchall()
         logging.info(result)
     
@@ -64,7 +64,7 @@ def addItem(account_id):
     request_data['LAST_UPDATE_DATETIME'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     query = table.insert().values(request_data)
     my_session = Session(engine)
-    result = my_session.execute(query)
+    my_session.execute(query)
     my_session.close()
     
     return Response(response=str(request_data).encode('utf-8'), status=201)
