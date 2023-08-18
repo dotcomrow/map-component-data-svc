@@ -72,7 +72,7 @@ def addItem(account_id):
     my_session.add(newRec)
     my_session.commit()
     my_session.flush()
-    result = my_session.execute(select(orm.POIData).where(orm.POIData.ID == index)).all()
+    result = my_session.execute(select(orm.POIData).where(orm.POIData.id == index)).all()
     my_session.close()
     
     out_results = []
