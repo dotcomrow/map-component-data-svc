@@ -1,6 +1,6 @@
 from sqlalchemy.schema import Table
 from sqlalchemy import Column, Integer, String
-from geoalchemy2 import Geography
+from sqlalchemy_bigquery import GEOGRAPHY
 from sqlalchemy import String, ForeignKey
 from sqlalchemy_bigquery import DATETIME
 import config
@@ -37,7 +37,7 @@ mapper_registry.map_imperatively(POIData, Table(
        config.TABLE_NAME,
         mapper_registry.metadata,
         Column("id", Integer, primary_key=True),
-        Column("location", Geography("POINT")),
+        Column("location", GEOGRAPHY),
         Column("data", String),
         Column("account_id", String),
         Column("last_update_datetime", DATETIME(timezone=True))

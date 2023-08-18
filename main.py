@@ -8,18 +8,20 @@ import pandas as pd
 from create_task import create_task
 import sqlalchemy as db
 from sqlalchemy.orm import Session
-from sqlalchemy import select, insert
+from sqlalchemy import select
 import geoalchemy2
 from shapely.geometry import Point, mapping, shape
 import orm
 
-app = Flask(__name__)
 logClient = google.cloud.logging.Client()
 logClient.setup_logging()
 
+app = Flask(__name__)
 app.config.from_object('config')
 app.secret_key = app.config['SECRET_KEY']
 delete_delay=20
+
+engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
 
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>", defaults={'item_id': None})
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
@@ -27,7 +29,6 @@ def getItems(account_id, item_id):
     if account_id is None:
         return Response(response="Account ID required", status=400)
     
-    engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
     my_session = Session(engine) 
     result = None
     if item_id is None:
@@ -58,9 +59,7 @@ def addItem(account_id):
     if account_id is None:
         return Response(response="Account ID required", status=400)
     
-    engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
     connection = engine.connect()
-    
     index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()')).scalar()
     
     request_data = request.get_json()
