@@ -42,7 +42,8 @@ def getItems(account_id, item_id):
             .where(orm.POIData.account_id == account_id and orm.POIData.id == item_id)).all()
     my_session.close()
     
-    logging.info(result)
+    for r in result:
+        logging.info(r.to_dict())
     return Response(response="working...", status=200)
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")

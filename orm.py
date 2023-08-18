@@ -13,9 +13,24 @@ mapper_registry = registry()
 
 class POIData():
     __table__ = config.TABLE_NAME
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "location": self.location,
+            "data": self.data,
+            "account_id": self.account_id,
+            "last_update_datetime": self.last_update_datetime
+        }
 
 class POIDeleteData():
     __table__ = config.TABLE_NAME + "_deletes"
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "account_id": self.account_id,
+            "requested_on": self.requested_on,
+            "delete_after": self.delete_after
+        }
     
 mapper_registry.map_imperatively(POIData, Table(
        config.TABLE_NAME,
