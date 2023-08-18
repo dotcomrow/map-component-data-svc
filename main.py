@@ -164,6 +164,7 @@ def updateItem(account_id, item_id):
     poi_data = result[0][0]
     poi_data.data = request_data['data']
     poi_data.location = shape(request_data['location']).wkt
+    poi_data.last_update_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     my_session.commit()
     my_session.flush()
@@ -185,85 +186,6 @@ def updateItem(account_id, item_id):
         out_results.append(o)
          
     return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
-
-# @app.put("/" + app.config['TABLE_NAME'])
-# def updateItem():
-#     query = client.query("UPDATE `" + table_string + "` set item_description = '" + request.form['item_description'] + "' where account_id = '" + user['sub'] + "' and " + app.config['TABLE_PK'] + " = '" + request.form['item_id'] + "' and create_datetime < DATETIME_SUB(CURRENT_DATETIME(), INTERVAL " + delete_delay + " MINUTE)")
-#     query.result()
-#     if query.num_dml_affected_rows > 0:
-#         return client.query("SELECT * from `" + table_string + "` where account_id = '" + user['sub'] + "' and " + app.config['TABLE_PK'] + " = '" + request.form['item_id'] + "'").to_dataframe().to_json(orient='records')
-#     else:
-#         # publisher = pubsub_v1.PublisherClient()
-#         # topic_name = 'projects/{project_id}/topics/{topic}'.format(
-#         #     project_id=app.config['PROJECT_ID'],
-#         #     topic='notify_user',  # Set this to something appropriate.
-#         # )
-#         # future = publisher.publish(topic_name, json.dumps(user).encode('utf-8'),)
-#         # future.result()
-    
-#         qurystr = """SELECT t1.* FROM `{table_string}` t1 
-#                                LEFT JOIN `{delete_table_string}` t2 ON t2.item_id = t1.item_id 
-#                                WHERE t2.item_id IS NULL AND t1.account_id = '{account_id}' and t1.item_id = '{item_id}' and t1.create_datetime > DATETIME_SUB(CURRENT_DATETIME(), INTERVAL {delete_delay} MINUTE)""".format(table_string=table_string, delete_table_string=delete_table_string, account_id=user['sub'], item_id=request.form['item_id'], delete_delay=delete_delay)
-                               
-#         logging.info(qurystr)
-#         ctquery = client.query(qurystr)
-#         ctquery.result()
-#         if len(ctquery.to_dataframe()) == 0:
-#             return Response(response="Item does not exist", status=409)
-        
-#         jsonObj = {
-#             'item_id' : request.form['item_id'],
-#             'delete_request':datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-#             'delete_after':(datetime.datetime.now() + datetime.timedelta(minutes=delete_delay)).strftime("%Y-%m-%d %H:%M:%S")
-#         }
-        
-#         rows_to_insert = [jsonObj]
-#         client.insert_rows_json(delete_table_id, rows_to_insert)  # Make an API request.
-        
-#         topic = "projects/{project_id}/topics/{topic}".format(
-#             project_id=app.config['PROJECT_ID'],
-#             topic='inventory-record-removal',  # Set this to something appropriate.
-#         )
-#         url = app.config['TASK_URL'].format(topic=topic)
-        
-#         create_task(name="Delete-{item_id}".format(item_id=request.form['item_id']), 
-#             project=app.config['PROJECT_ID'],
-#             location=app.config['LOCATION'],
-#             queue=app.config['QUEUE_NAME'],
-#             url=url,
-#             logging=logging,
-#             task_start=(datetime.datetime.now() + datetime.timedelta(minutes=delete_delay)),
-#             payload={
-#                 "messages": [
-#                     {
-#                         "data": base64.b64encode(json.dumps({
-#                             "item_id": request.form['item_id'],
-#                             "account_id": user['sub'],
-#                             "delete_request": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-#                             "delete_after": (datetime.datetime.now() + datetime.timedelta(minutes=delete_delay)).strftime("%Y-%m-%d %H:%M:%S")
-#                         }).encode('ascii')).decode('ascii')
-#                     }
-#                 ]
-#             }
-#         )
-        
-#         keyObj = {
-#             'item_description' : request.form['item_description'],
-#         }
-         
-#         row_id = client.query("SELECT TO_HEX(MD5(\"" + build_key(keyObj, user) + "\")) as md5").to_dataframe().iloc[0]['md5']
-        
-#         item_resp = client.query("SELECT * from `" + table_string + "` where account_id = '" + user['sub'] + "' and " + app.config['TABLE_PK'] + " = '" + request.form['item_id'] + "' and create_datetime > DATETIME_SUB(CURRENT_DATETIME(), INTERVAL " + delete_delay + " MINUTE)").to_dataframe()
-#         item_resp['item_description'] = request.form['item_description'] 
-#         item_resp['item_id'] = row_id
-#         item_resp['create_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
-        
-#         rows_to_insert = [item_resp.to_dict(orient='records')[0]]
-#         errors = client.insert_rows_json(table_id, rows_to_insert)  # Make an API request. 
-#         if errors == []:
-#             return Response(response=str(item_resp.to_dict(orient='records')[0]).encode('utf-8'), status=201)
-#         else:
-#             return Response(response="Encountered errors while inserting rows: {}".format(errors), status=500) 
 
 if __name__ == "__main__":
     # Development only: run "python main.py" and open http://localhost:8080
