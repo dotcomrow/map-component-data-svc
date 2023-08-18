@@ -37,9 +37,6 @@ def getItems(account_id, item_id):
             select(orm.POIData).join(orm.POIDeleteData, isouter=True, full=False)
                 .where(orm.POIData.account_id == account_id)
                 .where(orm.POIDeleteData.id == None)
-                    # ,account_id == orm.POIDeleteData.account_id and id == orm.POIDeleteData.id ,isouter=True, full=False
-                    
-            # .filter(orm.POIData.account_id == account_id)
             ).all()
     else:
         result = my_session.execute(
@@ -47,9 +44,6 @@ def getItems(account_id, item_id):
                 .where(orm.POIData.account_id == account_id)
                 .where(orm.POIData.id == int(item_id))
                 .where(orm.POIDeleteData.id == None)
-                    # ,account_id == orm.POIDeleteData.account_id and id == orm.POIDeleteData.id ,isouter=True, full=False
-                    
-            # .filter(orm.POIData.account_id == account_id and orm.POIData.id == item_id)
             ).all()
     my_session.close()
     
@@ -92,6 +86,57 @@ def addItem(account_id):
          
     return Response(response=json.dumps(out_results), status=201, mimetype="application/json")
 
+@app.delete("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
+def deleteItem(account_id, item_id):
+    if account_id is None:
+        return Response(response="Account ID required", status=400)
+    
+    my_session = Session(engine) 
+    result = my_session.execute(
+        select(orm.POIData).join(orm.POIDeleteData, isouter=True, full=False)
+            .where(orm.POIData.account_id == account_id)
+            .where(orm.POIData.id == int(item_id))
+            .where(orm.POIDeleteData.id == None)
+        ).all()
+    
+    if len(result) == 0:
+        return Response(response="Item does not exist", status=409)
+    
+    my_session.delete(result[0][0])
+    my_session.commit()
+    my_session.close()
+    
+    # connection = engine.connect()
+    # connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.delete_row_id(:id, :account_id, :delete_delay)'), id=int(item_id), account_id=account_id, delete_delay=delete_delay)
+    
+    # topic = "projects/{project_id}/topics/{topic}".format(
+    #     project_id=app.config['PROJECT_ID'],
+    #     topic='inventory-record-removal',  # Set this to something appropriate.
+    # )
+    # url = app.config['TASK_URL'].format(topic=topic)
+    
+    # create_task(name="Delete-{item_id}".format(item_id=item_id), 
+    #     project=app.config['PROJECT_ID'],
+    #     location=app.config['LOCATION'],
+    #     queue=app.config['QUEUE_NAME'],
+    #     url=url,
+    #     logging=logging,
+    #     task_start=(datetime.datetime.now() + datetime.timedelta(minutes=delete_delay)),
+    #     payload={
+    #         "messages": [
+    #             {
+    #                 "data": base64.b64encode(json.dumps({
+    #                     "item_id": item_id,
+    #                     "account_id": account_id,
+    #                     "delete_request": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    #                     "delete_after": (datetime.datetime.now() + datetime.timedelta(minutes=delete_delay)).strftime("%Y-%m-%d %H:%M:%S")
+    #                 }).encode('ascii')).decode('ascii')
+    #             }
+    #         ]
+    #     }
+    # )
+    
+    return Response(response="Record marked for deletion", status=200)
 
 # @app.put("/" + app.config['TABLE_NAME'])
 # def updateItem():
