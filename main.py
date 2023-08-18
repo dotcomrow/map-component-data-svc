@@ -91,6 +91,9 @@ def deleteItem(account_id, item_id):
     if account_id is None:
         return Response(response="Account ID required", status=400)
     
+    if item_id is None:
+        return Response(response="Item Account ID required", status=400)
+    
     my_session = Session(engine) 
     result = my_session.execute(
         select(orm.POIData).join(orm.POIDeleteData, isouter=True, full=False)
@@ -137,6 +140,51 @@ def deleteItem(account_id, item_id):
     # )
     
     return Response(response="Record marked for deletion", status=200)
+
+@app.put("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
+def updateItem(account_id, item_id):
+    if account_id is None:
+        return Response(response="Account ID required", status=400)
+    
+    if item_id is None:
+        return Response(response="Item Account ID required", status=400)
+    
+    my_session = Session(engine) 
+    result = my_session.execute(
+        select(orm.POIData).join(orm.POIDeleteData, isouter=True, full=False)
+            .where(orm.POIData.account_id == account_id)
+            .where(orm.POIData.id == int(item_id))
+            .where(orm.POIDeleteData.id == None)
+        ).all()
+    
+    if len(result) == 0:
+        return Response(response="Item does not exist", status=409)
+     
+    request_data = request.get_json()
+    poi_data = result[0][0]
+    poi_data.data = request_data['data']
+    poi_data.location = shape(request_data['location']).wkt
+    
+    my_session.commit()
+    my_session.flush()
+    my_session.close()
+    
+    search_session = Session(engine) 
+    search_res = search_session.execute(
+        select(orm.POIData).join(orm.POIDeleteData, isouter=True, full=False)
+            .where(orm.POIData.account_id == account_id)
+            .where(orm.POIData.id == int(item_id))
+            .where(orm.POIDeleteData.id == None)
+        ).all()
+    
+    out_results = []
+    for r in search_res:
+        o = r[0].to_dict()        
+        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
+        o['last_update_datetime'] = str(o['last_update_datetime'])
+        out_results.append(o)
+         
+    return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
 
 # @app.put("/" + app.config['TABLE_NAME'])
 # def updateItem():
@@ -216,64 +264,6 @@ def deleteItem(account_id, item_id):
 #             return Response(response=str(item_resp.to_dict(orient='records')[0]).encode('utf-8'), status=201)
 #         else:
 #             return Response(response="Encountered errors while inserting rows: {}".format(errors), status=500) 
-        
-    
-# @app.delete("/" + app.config['TABLE_NAME'])
-# def deleteItem():
-#     query = client.query("DELETE FROM `" + table_string + "` where account_id = '" + user['sub'] + "' and " + app.config['TABLE_PK'] + " = '" + request.form['item_id'] + "' and create_datetime < DATETIME_SUB(CURRENT_DATETIME(), INTERVAL " + delete_delay + " MINUTE)")
-#     query.result()
-#     logging.info("Deleted {num} rows".format(num=query.num_dml_affected_rows))
-#     if query.num_dml_affected_rows > 0:
-#         return Response(response="Item deleted", status=200)
-#     else:
-#         ctquery = client.query("SELECT * FROM `" + table_string + "` where account_id = '" + user['sub'] + "' and " + app.config['TABLE_PK'] + " = '" + request.form['item_id'] + "'  and create_datetime > DATETIME_SUB(CURRENT_DATETIME(), INTERVAL " + delete_delay + " MINUTE)")
-#         ctquery.result()
-#         if ctquery.to_dataframe().size == 0:
-#             errorTxt = "Item does not exist"
-#             return Response(response="Delete error: {error}".format(error=errorTxt), status=409)
-            
-#         ctquery = client.query("SELECT count(*) FROM `" + delete_table_string + "` where " + app.config['TABLE_PK'] + " = '" + request.form['item_id'] + "'")
-#         ctquery.result()
-#         if ctquery.to_dataframe().iloc[0]['f0_'] > 0:
-#             return Response(response="Record marked for deletion", status=200)
-             
-#         jsonObj = {
-#             'item_id' : request.form['item_id'],
-#             'delete_request':datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-#             'delete_after':(datetime.datetime.now() + datetime.timedelta(minutes=delete_delay)).strftime("%Y-%m-%d %H:%M:%S")
-#         }
-        
-#         rows_to_insert = [jsonObj]
-#         client.insert_rows_json(delete_table_id, rows_to_insert)  # Make an API request.
-        
-#         topic = "projects/{project_id}/topics/{topic}".format(
-#             project_id=app.config['PROJECT_ID'],
-#             topic='inventory-record-removal',  # Set this to something appropriate.
-#         )
-#         url = app.config['TASK_URL'].format(topic=topic)
-        
-#         create_task(name="Delete-{item_id}".format(item_id=request.form['item_id']), 
-#             project=app.config['PROJECT_ID'],
-#             location=app.config['LOCATION'],
-#             queue=app.config['QUEUE_NAME'],
-#             url=url,
-#             logging=logging,
-#             task_start=(datetime.datetime.now() + datetime.timedelta(minutes=delete_delay)),
-#             payload={
-#                 "messages": [
-#                     {
-#                         "data": base64.b64encode(json.dumps({
-#                             "item_id": request.form['item_id'],
-#                             "account_id": user['sub'],
-#                             "delete_request": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-#                             "delete_after": (datetime.datetime.now() + datetime.timedelta(minutes=delete_delay)).strftime("%Y-%m-%d %H:%M:%S")
-#                         }).encode('ascii')).decode('ascii')
-#                     }
-#                 ]
-#             }
-#         )
-        
-#         return Response(response="Record marked for deletion", status=200)
 
 if __name__ == "__main__":
     # Development only: run "python main.py" and open http://localhost:8080
