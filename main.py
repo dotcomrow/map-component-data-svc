@@ -51,7 +51,7 @@ def getItems(account_id, item_id):
         o['last_update_datetime'] = str(o['last_update_datetime'])
         out_results.append(o)
         logging.info(o)
-    return Response(response=json.dumps(out_results), status=200)
+    return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
 def addItem(account_id):
@@ -75,7 +75,7 @@ def addItem(account_id):
     my_session.execute(query)
     my_session.close()
     
-    return Response(response=str(request_data).encode('utf-8'), status=201)
+    return Response(response=str(request_data).encode('utf-8'), status=201, mimetype="application/json")
 
 
 # @app.put("/" + app.config['TABLE_NAME'])
