@@ -10,20 +10,6 @@ import sqlalchemy.types as types
 class Base():
     pass
 
-class Geo(types.TypeDecorator):
-    impl = Geography
-    
-    def __init__(self, length=None, **kwargs):
-        super().__init__(length, **kwargs)
-
-    def process_literal_param(self, value, dialect):
-        return "(ST_ASGEOJSON('{}')".format(value)
-
-    process_bind_param = process_literal_param
-
-    def process_result_value(self, value, dialect):
-        return value
-
 mapper_registry = registry()
 
 class POIData():
@@ -51,7 +37,7 @@ mapper_registry.map_imperatively(POIData, Table(
        config.TABLE_NAME,
         mapper_registry.metadata,
         Column("id", Integer, primary_key=True),
-        Column("location", Geo()),
+        Column("location", Geography("POINT")),
         Column("data", String),
         Column("account_id", String),
         Column("last_update_datetime", DATETIME(timezone=True))

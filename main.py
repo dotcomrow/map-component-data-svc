@@ -9,6 +9,7 @@ from create_task import create_task
 import sqlalchemy as db
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from shapely.geometry import Point, mapping, shape
 import orm
 
 app = Flask(__name__)
@@ -43,6 +44,7 @@ def getItems(account_id, item_id):
     my_session.close()
     
     for r in result:
+        r[0]['location'] = mapping(r[0]['location'])
         logging.info(r[0].to_dict())
     return Response(response="working...", status=200)
     
