@@ -44,12 +44,14 @@ def getItems(account_id, item_id):
             .where(orm.POIData.account_id == account_id and orm.POIData.id == item_id)).all()
     my_session.close()
     
+    out_results = []
     for r in result:
         o = r[0].to_dict()        
         o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
-        o['last_update_datetime'] = eval(o['last_update_datetime'])
+        o['last_update_datetime'] = str(o['last_update_datetime'])
+        out_results.append(o)
         logging.info(o)
-    return Response(response="working...", status=200)
+    return Response(response=json.dumps(out_results), status=200)
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
 def addItem(account_id):
