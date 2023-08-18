@@ -10,6 +10,7 @@ import sqlalchemy as db
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 import geoalchemy2
+from shapely.geometry import Point, mapping, shape
 import orm
 
 app = Flask(__name__)
@@ -45,7 +46,7 @@ def getItems(account_id, item_id):
     
     for r in result:
         o = r[0].to_dict()        
-        o['location'] = geoalchemy2.shape.to_shape(o['location'])
+        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
         logging.info(o)
     return Response(response="working...", status=200)
     
