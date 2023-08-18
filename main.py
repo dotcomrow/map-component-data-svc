@@ -8,7 +8,7 @@ import pandas as pd
 from create_task import create_task
 import sqlalchemy as db
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, insert
 import geoalchemy2
 from shapely.geometry import Point, mapping, shape
 import orm
@@ -61,13 +61,13 @@ def addItem(account_id):
     engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
     connection = engine.connect()
     
-    index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()'), dict(account_id=account_id)).scalar()
+    index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()')).scalar()
     
     request_data = request.get_json()
     request_data['ID'] = index
     request_data['ACCOUNT_ID'] = account_id
     request_data['LAST_UPDATE_DATETIME'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    query = orm.POIData.insert().values(request_data)
+    query = insert(orm.POIData).values(request_data)
     my_session = Session(engine)
     my_session.execute(query)
     result = my_session.execute(select(orm.POIData).where(orm.POIData.ID == index)).all()
