@@ -33,7 +33,8 @@ def getItems(account_id, item_id):
     result = None
     if item_id is None:
         result = my_session.execute(
-            select(orm.POIData).join(orm.POIDeleteData).where(orm.POIData.account_id == account_id
+            select(orm.POIData).outerjoin(orm.POIDeleteData).where(
+                orm.POIData.account_id == account_id and orm.POIData.id == orm.POIDeleteData.id
                     # ,account_id == orm.POIDeleteData.account_id and id == orm.POIDeleteData.id ,isouter=True, full=False
                     )
             # .filter(orm.POIData.account_id == account_id)
