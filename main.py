@@ -47,6 +47,7 @@ def getItems(account_id, item_id):
     for r in result:
         o = r[0].to_dict()        
         o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
+        o['last_update_datetime'] = eval(o['last_update_datetime'])
         logging.info(o)
     return Response(response="working...", status=200)
     
