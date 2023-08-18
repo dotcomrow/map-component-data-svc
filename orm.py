@@ -5,9 +5,24 @@ from sqlalchemy import String, ForeignKey
 from sqlalchemy_bigquery import DATETIME
 import config
 from sqlalchemy.orm import registry
+import sqlalchemy.types as types
 
 class Base():
     pass
+
+class Geo(types.TypeDecorator):
+    impl = Geography
+    
+    def __init__(self, length=None, **kwargs):
+        super().__init__(length, **kwargs)
+
+    def process_literal_param(self, value, dialect):
+        return "(ST_ASGEOJSON('{}')".format(value)
+
+    process_bind_param = process_literal_param
+
+    def process_result_value(self, value, dialect):
+        return value
 
 mapper_registry = registry()
 
@@ -36,7 +51,7 @@ mapper_registry.map_imperatively(POIData, Table(
        config.TABLE_NAME,
         mapper_registry.metadata,
         Column("id", Integer, primary_key=True),
-        Column("location", Geography("POINT")),
+        Column("location", Geo()),
         Column("data", String),
         Column("account_id", String),
         Column("last_update_datetime", DATETIME(timezone=True))
