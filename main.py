@@ -67,7 +67,7 @@ def addItem(account_id):
     request_data['id'] = index
     request_data['account_id'] = account_id
     request_data['last_update_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    request_data['location'] = shape(request_data['location']).wkb
+    request_data['location'] = shape(request_data['location']).wkt
     newRec = orm.POIData(**request_data)
     my_session = Session(engine)
     my_session.add(newRec)
