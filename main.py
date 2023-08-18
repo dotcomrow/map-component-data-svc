@@ -43,7 +43,7 @@ def getItems(account_id, item_id):
     my_session.close()
     
     for r in result:
-        logging.info(r.to_dict())
+        logging.info(r[0].to_dict())
     return Response(response="working...", status=200)
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
