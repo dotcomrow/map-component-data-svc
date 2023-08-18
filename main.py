@@ -50,7 +50,7 @@ def getItems(account_id, item_id):
         o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
         o['last_update_datetime'] = str(o['last_update_datetime'])
         out_results.append(o)
-        logging.info(o)
+        
     return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
@@ -61,21 +61,26 @@ def addItem(account_id):
     engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
     connection = engine.connect()
     
-    metadata = db.MetaData()
-    table = db.Table(app.config['TABLE_NAME'], metadata, autoload_with=engine)
-    
     index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()'), dict(account_id=account_id)).scalar()
     
     request_data = request.get_json()
     request_data['ID'] = index
     request_data['ACCOUNT_ID'] = account_id
     request_data['LAST_UPDATE_DATETIME'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    query = table.insert().values(request_data)
+    query = orm.POIData.insert().values(request_data)
     my_session = Session(engine)
     my_session.execute(query)
+    result = my_session.execute(select(orm.POIData).where(orm.POIData.ID == index)).all()
     my_session.close()
     
-    return Response(response=str(request_data).encode('utf-8'), status=201, mimetype="application/json")
+    out_results = []
+    for r in result:
+        o = r[0].to_dict()        
+        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
+        o['last_update_datetime'] = str(o['last_update_datetime'])
+        out_results.append(o)
+         
+    return Response(response=json.dumps(out_results), status=201, mimetype="application/json")
 
 
 # @app.put("/" + app.config['TABLE_NAME'])
