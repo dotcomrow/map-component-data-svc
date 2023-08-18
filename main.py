@@ -64,9 +64,9 @@ def addItem(account_id):
     index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()')).scalar()
     
     request_data = request.get_json()
-    request_data['ID'] = index
-    request_data['ACCOUNT_ID'] = account_id
-    request_data['LAST_UPDATE_DATETIME'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    request_data['id'] = index
+    request_data['account_id'] = account_id
+    request_data['last_update_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     newRec = orm.POIData(**request_data)
     my_session = Session(engine)
     my_session.add(newRec)
