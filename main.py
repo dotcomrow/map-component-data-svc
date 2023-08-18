@@ -34,13 +34,13 @@ def getItems(account_id, item_id):
     if item_id is None:
         result = my_session.execute(
             select(orm.POIData).join(orm.POIDeleteData
-                    ,orm.POIData.account_id == orm.POIDeleteData.account_id and orm.POIData.id == orm.POIDeleteData.id ,isouter=False, full=False
+                    ,account_id == orm.POIDeleteData.account_id and id == orm.POIDeleteData.id ,isouter=True, full=False
                     )
             .where(orm.POIData.account_id == account_id)).all()
     else:
         result = my_session.execute(
             select(orm.POIData).join(orm.POIDeleteData
-                    ,orm.POIData.account_id == orm.POIDeleteData.account_id and orm.POIData.id == orm.POIDeleteData.id ,isouter=False, full=False
+                    ,account_id == orm.POIDeleteData.account_id and id == orm.POIDeleteData.id ,isouter=True, full=False
                     )
             .where(orm.POIData.account_id == account_id and orm.POIData.id == item_id)).all()
     my_session.close()
