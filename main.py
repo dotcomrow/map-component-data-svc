@@ -45,7 +45,7 @@ def getItems(account_id, item_id):
         result = my_session.execute(
             select(orm.POIData).join(orm.POIDeleteData, isouter=True, full=False)
                 .where(orm.POIData.account_id == account_id)
-                .where(orm.POIData.id == item_id)
+                .where(orm.POIData.id == int(item_id))
                 .where(orm.POIDeleteData.id == None)
                     # ,account_id == orm.POIDeleteData.account_id and id == orm.POIDeleteData.id ,isouter=True, full=False
                     
