@@ -22,6 +22,7 @@ app.secret_key = app.config['SECRET_KEY']
 delete_delay=20
 
 engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>", defaults={'item_id': None})
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
