@@ -44,8 +44,9 @@ def getItems(account_id, item_id):
     my_session.close()
     
     for r in result:
-        r[0]['location'] = mapping(r[0]['location'])
-        logging.info(r[0].to_dict())
+        o = r[0].to_dict()
+        o['location'] = mapping(o['location'])
+        logging.info(o)
     return Response(response="working...", status=200)
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
