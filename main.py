@@ -36,7 +36,6 @@ def getItems(account_id, item_id):
         result = my_session.execute(
             select(orm.POIData).join(orm.POIDeleteData)
                 .where(orm.POIData.account_id == account_id)
-                .where(orm.POIData.id == orm.POIDeleteData.id)
                 .where(orm.POIDeleteData.id == None)
                     # ,account_id == orm.POIDeleteData.account_id and id == orm.POIDeleteData.id ,isouter=True, full=False
                     
@@ -47,7 +46,6 @@ def getItems(account_id, item_id):
             select(orm.POIData).join(orm.POIDeleteData)
                 .where(orm.POIData.account_id == account_id)
                 .where(orm.POIData.item_id == item_id)
-                .where(orm.POIData.id == orm.POIDeleteData.id)
                 .where(orm.POIDeleteData.id == None)
                     # ,account_id == orm.POIDeleteData.account_id and id == orm.POIDeleteData.id ,isouter=True, full=False
                     
