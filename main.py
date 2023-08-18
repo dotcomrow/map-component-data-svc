@@ -67,7 +67,13 @@ def addItem(account_id):
     request_data['ID'] = index
     request_data['ACCOUNT_ID'] = account_id
     request_data['LAST_UPDATE_DATETIME'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    query = insert(orm.POIData).values(request_data)
+    query = insert(orm.POIData).values(
+        DATA=request_data['DATA'], 
+        ID=request_data['ID'], 
+        ACCOUNT_ID=request_data['ACCOUNT_ID'], 
+        LAST_UPDATE_DATETIME=request_data['LAST_UPDATE_DATETIME'], 
+        LOCATION=request_data['LOCATION']
+    )
     my_session = Session(engine)
     my_session.execute(query)
     result = my_session.execute(select(orm.POIData).where(orm.POIData.ID == index)).all()
