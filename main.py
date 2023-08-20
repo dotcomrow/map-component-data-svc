@@ -62,7 +62,9 @@ def addItem(account_id):
     connection = engine.connect()
     index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()')).scalar()
     my_session = Session(engine)
+    logging.info(request)
     request_data = request.get_json()
+    logging.info(request_data)
     try:
         logging.info(request_data)
         request_data['id'] = index
