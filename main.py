@@ -63,7 +63,12 @@ def addItem(account_id):
     index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()')).scalar()
     my_session = Session(engine)
     logging.info(request)
-    request_data = request.get_json()
+    try:
+        request_data = request.get_json()
+    except Exception as e:
+        logging.error(e)
+        return Response(response="Invalid JSON", status=400)
+    
     logging.info(request_data)
     try:
         logging.info(request_data)
