@@ -56,7 +56,6 @@ def getItems(account_id, item_id):
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
 def addItem(account_id):
-    logging.info(account_id)
     if account_id is None:
         return Response(response="Account ID required", status=400)
     
@@ -67,7 +66,9 @@ def addItem(account_id):
     request_data['id'] = index
     request_data['account_id'] = account_id
     request_data['last_update_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    logging.info(request_data)
     request_data['location'] = shape(request_data['location']).wkt
+    logging.info(request_data['location'])
     newRec = orm.POIData(**request_data)
     my_session = Session(engine)
     my_session.add(newRec)
