@@ -91,6 +91,7 @@ def addItem(account_id):
         o = r[0].to_dict()        
         o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
         o['last_update_datetime'] = str(o['last_update_datetime'])
+        o['data'] = json.loads(o['data'])
         out_results.append(o)
          
     return Response(response=json.dumps(out_results), status=201, mimetype="application/json")
