@@ -62,7 +62,6 @@ def addItem(account_id):
     connection = engine.connect()
     index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()')).scalar()
     my_session = Session(engine)
-    logging.info(request)
     request_data = None
     try:
         request_data = request.get_json()
@@ -72,13 +71,11 @@ def addItem(account_id):
     
     logging.info(request_data)
     try:
-        logging.info(request_data)
         request_data['id'] = index
         request_data['account_id'] = account_id
         request_data['last_update_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         request_data['location'] = shape(request_data['location']).wkt
-        request_data['data'] = json.dumps(request_data['data'])
-        logging.info(request_data['location'])
+        request_data['data'] = json.loads(request_data['data'])
         logging.info(request_data)
         newRec = orm.POIData(**request_data)
         my_session.add(newRec)
@@ -175,7 +172,7 @@ def updateItem(account_id, item_id):
      
     request_data = request.get_json()
     poi_data = result[0][0]
-    poi_data.data = json.dumps(request_data['data'])
+    poi_data.data = json.loads(request_data['data'])
     poi_data.location = shape(request_data['location']).wkt
     poi_data.last_update_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
