@@ -39,7 +39,7 @@ mapper_registry.map_imperatively(POIData, Table(
         mapper_registry.metadata,
         Column("id", Integer, primary_key=True),
         Column("location", GEOGRAPHY),
-        Column("data", STRING),
+        Column("data", String),
         Column("account_id", String),
         Column("last_update_datetime", DATETIME(timezone=True))
 ))
