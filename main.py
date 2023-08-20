@@ -77,7 +77,7 @@ def addItem(account_id):
         request_data['account_id'] = account_id
         request_data['last_update_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         request_data['location'] = shape(request_data['location']).wkt
-        request_data['data'] = "PARSE_JSON(" + json.dumps(request_data['data']) + ")"
+        request_data['data'] = json.dumps(request_data['data'])
         logging.info(request_data['location'])
         logging.info(request_data)
         newRec = orm.POIData(**request_data)

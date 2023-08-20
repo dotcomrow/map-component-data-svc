@@ -6,6 +6,7 @@ from sqlalchemy_bigquery import DATETIME
 import config
 from sqlalchemy.orm import registry
 import sqlalchemy.types as types
+from sqlalchemy_json import MutableJson
 
 class Base():
     pass
@@ -38,7 +39,7 @@ mapper_registry.map_imperatively(POIData, Table(
         mapper_registry.metadata,
         Column("id", Integer, primary_key=True),
         Column("location", GEOGRAPHY),
-        Column("data", String),
+        Column("data", MutableJson),
         Column("account_id", String),
         Column("last_update_datetime", DATETIME(timezone=True))
 ))
