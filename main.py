@@ -1,6 +1,6 @@
 from flask import Flask, request, Response
 import google.cloud.logging
-# import logging
+import logging
 import json
 import datetime
 # from create_task import create_task
@@ -56,6 +56,7 @@ def getItems(account_id, item_id):
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
 def addItem(account_id):
+    logging.info(account_id)
     if account_id is None:
         return Response(response="Account ID required", status=400)
     
