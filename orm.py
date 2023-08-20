@@ -5,7 +5,7 @@ from sqlalchemy import String, ForeignKey
 from sqlalchemy_bigquery import DATETIME
 import config
 from sqlalchemy.orm import registry
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.mysql import JSON
 from sqlalchemy_json import mutable_json_type
 
 class Base():
