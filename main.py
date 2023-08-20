@@ -61,19 +61,22 @@ def addItem(account_id):
     
     connection = engine.connect()
     index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()')).scalar()
+    try:
+        request_data = request.get_json()
+        request_data['id'] = index
+        request_data['account_id'] = account_id
+        request_data['last_update_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        logging.info(request_data)
+        request_data['location'] = shape(request_data['location']).wkt
+        logging.info(request_data['location'])
+        newRec = orm.POIData(**request_data)
+        my_session = Session(engine)
+        my_session.add(newRec)
+        my_session.commit()
+        my_session.flush()
+    except Exception as e:
+        logging.error(e)
     
-    request_data = request.get_json()
-    request_data['id'] = index
-    request_data['account_id'] = account_id
-    request_data['last_update_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    logging.info(request_data)
-    request_data['location'] = shape(request_data['location']).wkt
-    logging.info(request_data['location'])
-    newRec = orm.POIData(**request_data)
-    my_session = Session(engine)
-    my_session.add(newRec)
-    my_session.commit()
-    my_session.flush()
     result = my_session.execute(select(orm.POIData).where(orm.POIData.id == index)).all()
     my_session.close()
     
