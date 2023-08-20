@@ -61,6 +61,7 @@ def addItem(account_id):
     
     connection = engine.connect()
     index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()')).scalar()
+    my_session = Session(engine)
     try:
         request_data = request.get_json()
         request_data['id'] = index
@@ -70,7 +71,6 @@ def addItem(account_id):
         request_data['location'] = shape(request_data['location']).wkt
         logging.info(request_data['location'])
         newRec = orm.POIData(**request_data)
-        my_session = Session(engine)
         my_session.add(newRec)
         my_session.commit()
         my_session.flush()
