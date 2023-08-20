@@ -113,7 +113,7 @@ def deleteItem(account_id, item_id):
         ).all()
     
     if len(result) == 0:
-        return Response(response="Item does not exist", status=409)
+        return Response(response="Item does not exist", status=404)
     
     my_session.delete(result[0][0])
     my_session.commit()
@@ -168,7 +168,7 @@ def updateItem(account_id, item_id):
         ).all()
     
     if len(result) == 0:
-        return Response(response="Item does not exist", status=409)
+        return Response(response="Item does not exist", status=404)
      
     request_data = request.get_json()
     poi_data = result[0][0]
