@@ -20,7 +20,7 @@ app.secret_key = app.config['SECRET_KEY']
 delete_delay=20
 
 engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>", defaults={'item_id': None})
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
@@ -50,6 +50,7 @@ def getItems(account_id, item_id):
         o = r[0].to_dict()        
         o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
         o['last_update_datetime'] = str(o['last_update_datetime'])
+        o['data'] = json.loads(o['data'])
         out_results.append(o)
         
     return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
@@ -69,15 +70,12 @@ def addItem(account_id):
         logging.error(e)
         return Response(response="Invalid JSON", status=400)
     
-    logging.info(request_data)
     try:
         request_data['id'] = index
         request_data['account_id'] = account_id
         request_data['last_update_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         request_data['location'] = shape(request_data['location']).wkt
-        logging.info(request_data)
-        request_data['data'] = request_data['data']
-        logging.info(request_data)
+        request_data['data'] = json.dumps(request_data['data'])
         newRec = orm.POIData(**request_data)
         my_session.add(newRec)
         my_session.commit()
@@ -173,7 +171,7 @@ def updateItem(account_id, item_id):
      
     request_data = request.get_json()
     poi_data = result[0][0]
-    poi_data.data = request_data['data']
+    poi_data.data = json.dumps(request_data['data'])
     poi_data.location = shape(request_data['location']).wkt
     poi_data.last_update_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
