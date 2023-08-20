@@ -75,7 +75,8 @@ def addItem(account_id):
         request_data['account_id'] = account_id
         request_data['last_update_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         request_data['location'] = shape(request_data['location']).wkt
-        request_data['data'] = bytes(json.dumps(json.loads(request_data['data'])), 'utf-8')
+        logging.info(request_data)
+        request_data['data'] = request_data['data']
         logging.info(request_data)
         newRec = orm.POIData(**request_data)
         my_session.add(newRec)
@@ -172,7 +173,7 @@ def updateItem(account_id, item_id):
      
     request_data = request.get_json()
     poi_data = result[0][0]
-    poi_data.data = json.loads(request_data['data'])
+    poi_data.data = request_data['data']
     poi_data.location = shape(request_data['location']).wkt
     poi_data.last_update_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
