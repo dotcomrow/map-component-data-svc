@@ -20,7 +20,7 @@ app.secret_key = app.config['SECRET_KEY']
 delete_delay=20
 
 engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
-# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>", defaults={'item_id': None})
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
@@ -77,6 +77,7 @@ def addItem(account_id):
         request_data['account_id'] = account_id
         request_data['last_update_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         request_data['location'] = shape(request_data['location']).wkt
+        request_data['data'] = json.dumps(request_data['data'])
         logging.info(request_data['location'])
         logging.info(request_data)
         newRec = orm.POIData(**request_data)
@@ -174,7 +175,7 @@ def updateItem(account_id, item_id):
      
     request_data = request.get_json()
     poi_data = result[0][0]
-    poi_data.data = request_data['data']
+    poi_data.data = json.dumps(request_data['data'])
     poi_data.location = shape(request_data['location']).wkt
     poi_data.last_update_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
