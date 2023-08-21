@@ -6,7 +6,7 @@ pandas
 db_dtypes
 google-cloud-logging
 google-cloud-pubsub
-swagger-gen
+flask-openapi3
 google-cloud-tasks
 protobuf
 sqlalchemy
@@ -15,4 +15,3 @@ google-cloud-bigquery-storage
 sqlalchemy-bigquery[geography]
 geoalchemy2
 shapely
-sqlalchemy-json

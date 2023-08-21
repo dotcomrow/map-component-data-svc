@@ -3,13 +3,14 @@ import google.cloud.logging
 import logging
 import json
 import datetime
-# from create_task import create_task
 import sqlalchemy as db
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 import geoalchemy2
 from shapely.geometry import mapping, shape
 import orm
+from flask_openapi3 import Info, Tag
+from flask_openapi3 import OpenAPI
 
 logClient = google.cloud.logging.Client()
 logClient.setup_logging()
@@ -17,7 +18,6 @@ logClient.setup_logging()
 app = Flask(__name__)
 app.config.from_object('config')
 app.secret_key = app.config['SECRET_KEY']
-delete_delay=20
 
 engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
@@ -118,36 +118,6 @@ def deleteItem(account_id, item_id):
     my_session.delete(result[0][0])
     my_session.commit()
     my_session.close()
-    
-    # connection = engine.connect()
-    # connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.delete_row_id(:id, :account_id, :delete_delay)'), id=int(item_id), account_id=account_id, delete_delay=delete_delay)
-    
-    # topic = "projects/{project_id}/topics/{topic}".format(
-    #     project_id=app.config['PROJECT_ID'],
-    #     topic='inventory-record-removal',  # Set this to something appropriate.
-    # )
-    # url = app.config['TASK_URL'].format(topic=topic)
-    
-    # create_task(name="Delete-{item_id}".format(item_id=item_id), 
-    #     project=app.config['PROJECT_ID'],
-    #     location=app.config['LOCATION'],
-    #     queue=app.config['QUEUE_NAME'],
-    #     url=url,
-    #     logging=logging,
-    #     task_start=(datetime.datetime.now() + datetime.timedelta(minutes=delete_delay)),
-    #     payload={
-    #         "messages": [
-    #             {
-    #                 "data": base64.b64encode(json.dumps({
-    #                     "item_id": item_id,
-    #                     "account_id": account_id,
-    #                     "delete_request": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    #                     "delete_after": (datetime.datetime.now() + datetime.timedelta(minutes=delete_delay)).strftime("%Y-%m-%d %H:%M:%S")
-    #                 }).encode('ascii')).decode('ascii')
-    #             }
-    #         ]
-    #     }
-    # )
     
     return Response(response="Record marked for deletion", status=200)
 
