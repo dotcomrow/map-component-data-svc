@@ -32,16 +32,14 @@ def getItems(account_id, item_id):
     result = None
     if item_id is None:
         result = my_session.execute(
-            select(orm.POIData).join(orm.POIDeleteData, isouter=True, full=False)
-                .where(orm.POIData.account_id == account_id)
-                .where(orm.POIDeleteData.id == None)
+            select(orm.POIData)
+                .where(orm.POIData.account_id == account_id)         
             ).all()
     else:
         result = my_session.execute(
-            select(orm.POIData).join(orm.POIDeleteData, isouter=True, full=False)
+            select(orm.POIData)
                 .where(orm.POIData.account_id == account_id)
-                .where(orm.POIData.id == int(item_id))
-                .where(orm.POIDeleteData.id == None)
+                .where(orm.POIData.id == int(item_id))                
             ).all()
     my_session.close()
     
@@ -106,10 +104,9 @@ def deleteItem(account_id, item_id):
     
     my_session = Session(engine) 
     result = my_session.execute(
-        select(orm.POIData).join(orm.POIDeleteData, isouter=True, full=False)
+        select(orm.POIData)
             .where(orm.POIData.account_id == account_id)
             .where(orm.POIData.id == int(item_id))
-            .where(orm.POIDeleteData.id == None)
         ).all()
     
     if len(result) == 0:
@@ -131,10 +128,9 @@ def updateItem(account_id, item_id):
     
     my_session = Session(engine) 
     result = my_session.execute(
-        select(orm.POIData).join(orm.POIDeleteData, isouter=True, full=False)
+        select(orm.POIData)
             .where(orm.POIData.account_id == account_id)
             .where(orm.POIData.id == int(item_id))
-            .where(orm.POIDeleteData.id == None)
         ).all()
     
     if len(result) == 0:
@@ -152,10 +148,9 @@ def updateItem(account_id, item_id):
     
     search_session = Session(engine) 
     search_res = search_session.execute(
-        select(orm.POIData).join(orm.POIDeleteData, isouter=True, full=False)
+        select(orm.POIData)
             .where(orm.POIData.account_id == account_id)
             .where(orm.POIData.id == int(item_id))
-            .where(orm.POIDeleteData.id == None)
         ).all()
     
     out_results = []
