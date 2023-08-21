@@ -6,7 +6,6 @@ pandas
 db_dtypes
 google-cloud-logging
 google-cloud-pubsub
-flask-openapi3
 google-cloud-tasks
 protobuf
 sqlalchemy
