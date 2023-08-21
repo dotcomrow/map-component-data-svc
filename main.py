@@ -22,7 +22,82 @@ app.secret_key = app.config['SECRET_KEY']
 engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-@app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>", defaults={'item_id': None})
+info = Info(title='Map Component Data layer', version='1.0.0')
+# Implicit OAuth2 Sample
+oauth2 = {
+  "type": "oauth2",
+  "flows": {
+    "implicit": {
+      "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth"
+    }
+  }
+}
+security_schemes = {"oauth2": oauth2}
+
+app = OpenAPI(__name__, info=info, security_schemes=security_schemes)
+
+security = [
+    {"oauth2": []}
+]
+
+@app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>", defaults={'item_id': None},
+         tags=[Tag(name='POI', description='Get POI data for account')],
+         security=security,
+         summary='Get POI data for account',
+         description='Get POI data for account',
+         responses={
+                "200": {
+                    "description": "POI data",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "location": {
+                                            "type": "object",
+                                            "properties": {
+                                                "type": {
+                                                    "type": "string"
+                                                },
+                                                "coordinates": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "number"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "account_id": {
+                                            "type": "string"
+                                        },
+                                        "last_update_datetime": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "Account ID required"
+                },
+                "404": {
+                    "description": "Account not found"
+                },
+                "500": {
+                    "description": "Internal server error"
+                }
+         }
+        )
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
 def getItems(account_id, item_id):
     if account_id is None:
