@@ -65,7 +65,7 @@ def getItemsWithinBox(account_id):
     result = my_session.execute(
         select(orm.POIData)
             .where(orm.POIData.account_id == account_id)
-            .where(func.ST_Within(func.ST_GEOGFROM(bbox)))
+            .where(func.ST_Within(orm.POIData.location, func.ST_GEOGFROMTEXT(bbox)))
         ).all()
     my_session.close()
     
