@@ -9,6 +9,7 @@ from sqlalchemy import select
 import geoalchemy2
 from shapely.geometry import mapping, shape
 import orm
+from sqlalchemy import func
 
 logClient = google.cloud.logging.Client()
 logClient.setup_logging()
@@ -64,7 +65,7 @@ def getItemsWithinBox(account_id):
     result = my_session.execute(
         select(orm.POIData)
             .where(orm.POIData.account_id == account_id)
-            .where(orm.POIData.location.ST_Within(orm.POIData.location.ST_GEOGFROM(bbox)))
+            .where(func.ST_Within(func.ST_GEOGFROM(bbox)))
         ).all()
     my_session.close()
     
