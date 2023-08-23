@@ -9,7 +9,7 @@ from sqlalchemy import select
 import geoalchemy2
 from shapely.geometry import mapping, shape
 import orm
-from geoalchemy2 import func
+from geoalchemy2 import functions as func
 
 logClient = google.cloud.logging.Client()
 logClient.setup_logging()
