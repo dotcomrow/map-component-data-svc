@@ -50,6 +50,32 @@ def getItems(account_id, item_id):
         out_results.append(o)
         
     return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
+
+@app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/features", defaults={'bbox': None})
+def getItemsWithinBox(account_id, bbox):
+    if account_id is None:
+        return Response(response="Account ID required", status=400)
+    
+    if bbox is None:
+        return Response(response="Bounding box required", status=400)
+    
+    my_session = Session(engine) 
+    result = my_session.execute(
+        select(orm.POIData)
+            .where(orm.POIData.account_id == account_id)
+            .where(orm.POIData.location.ST_Within(bbox))
+        ).all()
+    my_session.close()
+    
+    out_results = []
+    for r in result:
+        o = r[0].to_dict()        
+        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
+        o['last_update_datetime'] = str(o['last_update_datetime'])
+        o['data'] = json.loads(o['data'])
+        out_results.append(o)
+        
+    return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
 def addItem(account_id):
