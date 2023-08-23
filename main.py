@@ -52,9 +52,8 @@ def getItems(account_id, item_id):
         
     return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
 
-@app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/features", defaults={'bbox': None})
-def getItemsWithinBox(account_id, bbox):
-    logging.info("getItemsWithinBox" + bbox)
+@app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/features")
+def getItemsWithinBox(account_id):
     if account_id is None:
         return Response(response="Account ID required", status=400)
     
