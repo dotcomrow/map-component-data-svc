@@ -9,7 +9,7 @@ from sqlalchemy import select
 import geoalchemy2
 from shapely.geometry import mapping, shape
 import orm
-from sqlalchemy import func
+from sqlalchemy.sql.expression import func
 
 logClient = google.cloud.logging.Client()
 logClient.setup_logging()
@@ -61,11 +61,12 @@ def getItemsWithinBox(account_id):
     if bbox is None:
         return Response(response="Bounding box required", status=400)
     
+    func_schema=app.config['DATASET_NAME']
     my_session = Session(engine) 
     result = my_session.execute(
         select(orm.POIData)
             .where(orm.POIData.account_id == account_id)
-            .where(func.ST_Within(orm.POIData.location, func.ST_GEOGFROMTEXT(bbox)))
+            .where(func.func_schema.ST_Within(orm.POIData.location, func.func_schema.ST_GEOGFROMTEXT(bbox)))
         ).all()
     my_session.close()
     
