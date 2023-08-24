@@ -33,6 +33,9 @@ def addItem(account_id):
     if account_id is None:
         return Response(response="Account ID required", status=400)
     
+    if request.json is None:
+        return Response(response="JSON Object required required", status=400)
+    
     return handlers.handle_addItem(account_id)
 
 @app.delete("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")

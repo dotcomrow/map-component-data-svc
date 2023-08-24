@@ -14,6 +14,16 @@ import datetime
 engine = db.create_engine('bigquery://' + config.PROJECT_ID + '/' + config.DATASET_NAME, credentials_path='google.key')
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
+def buildResponse(result):
+    out_results = []
+    for r in result:
+        o = r[0].to_dict()        
+        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
+        o['last_update_datetime'] = str(o['last_update_datetime'])
+        o['data'] = json.loads(o['data'])
+        out_results.append(o)
+    return out_results
+
 def handle_getItems(account_id, item_id):
     my_session = Session(engine) 
     result = None
@@ -30,14 +40,7 @@ def handle_getItems(account_id, item_id):
             ).all()
     my_session.close()
     
-    out_results = []
-    for r in result:
-        o = r[0].to_dict()        
-        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
-        o['last_update_datetime'] = str(o['last_update_datetime'])
-        o['data'] = json.loads(o['data'])
-        out_results.append(o)
-        
+    out_results = buildResponse(result) 
     return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
 
 def handle_getItemsWithinBox(account_id, bbox):
@@ -49,27 +52,15 @@ def handle_getItemsWithinBox(account_id, bbox):
         ).all()
     my_session.close()
     
-    out_results = []
-    for r in result:
-        o = r[0].to_dict()        
-        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
-        o['last_update_datetime'] = str(o['last_update_datetime'])
-        o['data'] = json.loads(o['data'])
-        out_results.append(o)
-        
+    out_results = buildResponse(result)
     return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
 
 def handle_addItem(account_id):
     connection = engine.connect()
     index = connection.execute(db.text('call ' + config.DATASET_NAME + '.get_row_id()')).scalar()
     my_session = Session(engine)
-    request_data = None
-    try:
-        request_data = request.get_json()
-    except Exception as e:
-        logging.error(e)
-        return Response(response="Invalid JSON", status=400)
-    
+    request_data = request.get_json()
+
     try:
         request_data['id'] = index
         request_data['account_id'] = account_id
@@ -86,15 +77,8 @@ def handle_addItem(account_id):
     result = my_session.execute(select(orm.POIData).where(orm.POIData.id == index)).all()
     my_session.close()
     
-    out_results = []
-    for r in result:
-        o = r[0].to_dict()        
-        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
-        o['last_update_datetime'] = str(o['last_update_datetime'])
-        o['data'] = json.loads(o['data'])
-        out_results.append(o)
-         
-    return Response(response=json.dumps(out_results), status=201, mimetype="application/json")
+    out_results = buildResponse(result)
+    return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
 
 def handle_deleteItem(account_id, item_id):
     my_session = Session(engine) 
@@ -141,11 +125,5 @@ def handle_updateItem(account_id, item_id):
             .where(orm.POIData.id == int(item_id))
         ).all()
     
-    out_results = []
-    for r in search_res:
-        o = r[0].to_dict()        
-        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
-        o['last_update_datetime'] = str(o['last_update_datetime'])
-        out_results.append(o)
-         
+    out_results = buildResponse(search_res)
     return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
