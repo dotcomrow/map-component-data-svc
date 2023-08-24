@@ -1,15 +1,6 @@
 from flask import Flask, request, Response
 import google.cloud.logging
-import logging
-import json
-import datetime
-import sqlalchemy as db
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-import geoalchemy2
-from shapely.geometry import mapping, shape
-import orm
-from geoalchemy2 import functions as func
+import handlers
 
 logClient = google.cloud.logging.Client()
 logClient.setup_logging()
@@ -18,39 +9,13 @@ app = Flask(__name__)
 app.config.from_object('config')
 app.secret_key = app.config['SECRET_KEY']
 
-engine = db.create_engine('bigquery://' + app.config['PROJECT_ID'] + '/' + app.config['DATASET_NAME'], credentials_path='google.key')
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>", defaults={'item_id': None})
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
 def getItems(account_id, item_id):
     if account_id is None:
         return Response(response="Account ID required", status=400)
     
-    my_session = Session(engine) 
-    result = None
-    if item_id is None:
-        result = my_session.execute(
-            select(orm.POIData)
-                .where(orm.POIData.account_id == account_id)         
-            ).all()
-    else:
-        result = my_session.execute(
-            select(orm.POIData)
-                .where(orm.POIData.account_id == account_id)
-                .where(orm.POIData.id == int(item_id))                
-            ).all()
-    my_session.close()
-    
-    out_results = []
-    for r in result:
-        o = r[0].to_dict()        
-        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
-        o['last_update_datetime'] = str(o['last_update_datetime'])
-        o['data'] = json.loads(o['data'])
-        out_results.append(o)
-        
-    return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
+    return handlers.handle_getItems(account_id, item_id)
 
 @app.get("/" + app.config['TABLE_NAME'] + "/<path:account_id>/features")
 def getItemsWithinBox(account_id):
@@ -61,64 +26,14 @@ def getItemsWithinBox(account_id):
     if bbox is None:
         return Response(response="Bounding box required", status=400)
     
-    my_session = Session(engine) 
-    result = my_session.execute(
-        select(orm.POIData)
-            .where(orm.POIData.account_id == account_id)
-            .where(func.ST_Within(orm.POIData.location, func.ST_GeogFromText(bbox)))
-        ).all()
-    my_session.close()
-    
-    out_results = []
-    for r in result:
-        o = r[0].to_dict()        
-        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
-        o['last_update_datetime'] = str(o['last_update_datetime'])
-        o['data'] = json.loads(o['data'])
-        out_results.append(o)
-        
-    return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
+    return handlers.handle_getItemsWithinBox(account_id, bbox)
     
 @app.post("/" + app.config['TABLE_NAME'] + "/<path:account_id>")
 def addItem(account_id):
     if account_id is None:
         return Response(response="Account ID required", status=400)
     
-    connection = engine.connect()
-    index = connection.execute(db.text('call ' + app.config['DATASET_NAME'] + '.get_row_id()')).scalar()
-    my_session = Session(engine)
-    request_data = None
-    try:
-        request_data = request.get_json()
-    except Exception as e:
-        logging.error(e)
-        return Response(response="Invalid JSON", status=400)
-    
-    try:
-        request_data['id'] = index
-        request_data['account_id'] = account_id
-        request_data['last_update_datetime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        request_data['location'] = shape(request_data['location']).wkt
-        request_data['data'] = json.dumps(request_data['data'])
-        newRec = orm.POIData(**request_data)
-        my_session.add(newRec)
-        my_session.commit()
-        my_session.flush()
-    except Exception as e:
-        logging.error(e)
-    
-    result = my_session.execute(select(orm.POIData).where(orm.POIData.id == index)).all()
-    my_session.close()
-    
-    out_results = []
-    for r in result:
-        o = r[0].to_dict()        
-        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
-        o['last_update_datetime'] = str(o['last_update_datetime'])
-        o['data'] = json.loads(o['data'])
-        out_results.append(o)
-         
-    return Response(response=json.dumps(out_results), status=201, mimetype="application/json")
+    return handlers.handle_addItem(account_id)
 
 @app.delete("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
 def deleteItem(account_id, item_id):
@@ -128,21 +43,7 @@ def deleteItem(account_id, item_id):
     if item_id is None:
         return Response(response="Item Account ID required", status=400)
     
-    my_session = Session(engine) 
-    result = my_session.execute(
-        select(orm.POIData)
-            .where(orm.POIData.account_id == account_id)
-            .where(orm.POIData.id == int(item_id))
-        ).all()
-    
-    if len(result) == 0:
-        return Response(response="Item does not exist", status=404)
-    
-    my_session.delete(result[0][0])
-    my_session.commit()
-    my_session.close()
-    
-    return Response(response="Record marked for deletion", status=200)
+    return handlers.handle_deleteItem(account_id, item_id)
 
 @app.put("/" + app.config['TABLE_NAME'] + "/<path:account_id>/<path:item_id>")
 def updateItem(account_id, item_id):
@@ -152,41 +53,7 @@ def updateItem(account_id, item_id):
     if item_id is None:
         return Response(response="Item Account ID required", status=400)
     
-    my_session = Session(engine) 
-    result = my_session.execute(
-        select(orm.POIData)
-            .where(orm.POIData.account_id == account_id)
-            .where(orm.POIData.id == int(item_id))
-        ).all()
-    
-    if len(result) == 0:
-        return Response(response="Item does not exist", status=404)
-     
-    request_data = request.get_json()
-    poi_data = result[0][0]
-    poi_data.data = json.dumps(request_data['data'])
-    poi_data.location = shape(request_data['location']).wkt
-    poi_data.last_update_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    my_session.commit()
-    my_session.flush()
-    my_session.close()
-    
-    search_session = Session(engine) 
-    search_res = search_session.execute(
-        select(orm.POIData)
-            .where(orm.POIData.account_id == account_id)
-            .where(orm.POIData.id == int(item_id))
-        ).all()
-    
-    out_results = []
-    for r in search_res:
-        o = r[0].to_dict()        
-        o['location'] = mapping(geoalchemy2.shape.to_shape(o['location']))
-        o['last_update_datetime'] = str(o['last_update_datetime'])
-        out_results.append(o)
-         
-    return Response(response=json.dumps(out_results), status=200, mimetype="application/json")
+    return handlers.handle_updateItem(account_id, item_id)
 
 if __name__ == "__main__":
     # Development only: run "python main.py" and open http://localhost:8080
